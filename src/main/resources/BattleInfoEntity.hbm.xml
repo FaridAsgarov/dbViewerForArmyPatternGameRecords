@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+    <class name="Entity.BattleInfoEntity" table="battle_info" schema="farid_db">
+        <id name="battleId">
+            <column name="battle_id" sql-type="int"/>
+        </id>
+        <property name="battleMode">
+            <column name="battle_mode" sql-type="varchar(150)" length="150"/>
+        </property>
+        <property name="battleWinner">
+            <column name="battle_winner" sql-type="varchar(200)" length="200"/>
+        </property>
+        <property name="submissionDate">
+            <column name="submission_date" sql-type="date" not-null="false"/>
+        </property>
+    </class>
+</hibernate-mapping>
