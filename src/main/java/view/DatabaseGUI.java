@@ -11,6 +11,8 @@ import org.hibernate.query.Query;
 import javax.persistence.metamodel.EntityType;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Objects;
 
 public class DatabaseGUI extends JFrame {
@@ -29,10 +31,12 @@ public class DatabaseGUI extends JFrame {
         JMenu viewDb = new JMenu("Show database info");
         JMenu writeToDb = new JMenu("Write to database");
         JMenu clear = new JMenu("Clear the log");
+        JMenu delete = new JMenu("Delete from the database");
 
         JMenuItem viewBattleInfo = new JMenuItem("Show squad battle game records from database");
         JMenuItem writeNewGameInfoToDb = new JMenuItem("Write a new game record to the database");
         JMenuItem clearTheLog = new JMenuItem("Remove all the text from the log");
+        JMenuItem deleteById = new JMenuItem("Delete a record from the database based on its Id");
 
         log.setBounds(0,60,500,400);
         log.setHorizontalAlignment(SwingConstants.CENTER);
@@ -54,10 +58,20 @@ public class DatabaseGUI extends JFrame {
         });
 
         clearTheLog.addActionListener(e -> {
-                for (Component component: log.getComponents()){
-                    log.remove(component);
-                }
+          deleteTheLog();
         });
+
+        deleteById.addActionListener(e -> {
+            try{
+                deleteTheLog();
+                deleteFromTableById(Objects.requireNonNull(JOptionPane.showInputDialog(log, "Enter a number ID of the record which you want to delete:")));
+                showDbInTableForm();
+
+                JOptionPane.showMessageDialog(log,"Successfully deleted the game record into database","Success",JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception ignored){
+            }
+
+            });
 
         this.setJMenuBar(menuBar);
         menuBar.setVisible(true);
@@ -66,9 +80,11 @@ public class DatabaseGUI extends JFrame {
         menuBar.add(viewDb);
         menuBar.add(writeToDb);
         menuBar.add(clear);
+        menuBar.add(delete);
         viewDb.add(viewBattleInfo);
         writeToDb.add(writeNewGameInfoToDb);
         clear.add(clearTheLog);
+        delete.add(deleteById);
         this.add(dbLog);
 
         log.setLayout(new GridLayout(0,1));
@@ -76,6 +92,12 @@ public class DatabaseGUI extends JFrame {
 
 
         showDbInTableForm();
+    }
+
+    private void deleteTheLog() {
+        for (Component component: log.getComponents()){
+            log.remove(component);
+        }
     }
 
 
@@ -178,5 +200,21 @@ public class DatabaseGUI extends JFrame {
             session.close();
         }
     }
+
+    private void deleteFromTableById(String id){
+        final Session session = getSession();
+        try {
+            final Metamodel metamodel = session.getSessionFactory().getMetamodel();
+            for (EntityType<?> entityType : metamodel.getEntities()) {
+                final String entityName = entityType.getName();
+                final Query query = session.createQuery("DELETE from " + entityName + " WHERE battle_id=\'" + id + "\'");
+                query.getQueryString();
+            }
+        } catch(Exception e){
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+        }
 
 }
