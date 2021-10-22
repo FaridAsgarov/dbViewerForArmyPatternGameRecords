@@ -11,8 +11,6 @@ import org.hibernate.query.Query;
 import javax.persistence.metamodel.EntityType;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Objects;
 
 public class DatabaseGUI extends JFrame {
@@ -64,10 +62,12 @@ public class DatabaseGUI extends JFrame {
         deleteById.addActionListener(e -> {
             try{
                 deleteTheLog();
-                deleteFromTableById(Objects.requireNonNull(JOptionPane.showInputDialog(log, "Enter a number ID of the record which you want to delete:")));
+                deleteFromTableById(
+                        Integer.parseInt(Objects.requireNonNull(JOptionPane.showInputDialog(log,
+                                "Enter a number ID of the record which you want to delete:"))));
                 showDbInTableForm();
 
-                JOptionPane.showMessageDialog(log,"Successfully deleted the game record into database","Success",JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(log,"The record should now be deleted from the database","Success",JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception ignored){
             }
 
@@ -201,14 +201,16 @@ public class DatabaseGUI extends JFrame {
         }
     }
 
-    private void deleteFromTableById(String id){
+    private void deleteFromTableById(int id){
         final Session session = getSession();
         try {
             final Metamodel metamodel = session.getSessionFactory().getMetamodel();
+            session.beginTransaction();
             for (EntityType<?> entityType : metamodel.getEntities()) {
                 final String entityName = entityType.getName();
-                final Query query = session.createQuery("DELETE from " + entityName + " WHERE battle_id=\'" + id + "\'");
-                query.getQueryString();
+                int query = session.createNativeQuery("delete from battle_info where battle_id = :battle_id")
+                        .setParameter("battle_id", id)
+                        .executeUpdate();
             }
         } catch(Exception e){
             e.printStackTrace();
