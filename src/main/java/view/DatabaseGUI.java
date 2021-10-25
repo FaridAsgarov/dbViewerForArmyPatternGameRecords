@@ -18,8 +18,10 @@ public class DatabaseGUI extends JFrame {
     private final int frameHeight = 1000;
     private final int frameWidth = 900;
     private final String startingHtmlTag = "<html>";
-    private final String startingLabelText = startingHtmlTag + "Database Game Records:" + "<br>";
-    private final String noSuchIdError = "Such an Id does not exist, please enter a number Id which exists in the database";
+    private final String startingLabelHTMLText = startingHtmlTag + "Database Game Records:" + "<br>";
+    private final String noSuchIdErrorTitle = "Error: Such an Id does not exist in the database";
+    private final String noSuchIdErrorMessage = "Such an Id does not exist, please enter a number Id which exists in the database";
+
     private SessionFactory ourSessionFactory = buildSessionFactory();
     JLabel log = new JLabel();
     ArrayList<Integer> idNums = new ArrayList<Integer>();
@@ -54,7 +56,8 @@ public class DatabaseGUI extends JFrame {
             writeToDbTable(Objects.requireNonNull(JOptionPane.showInputDialog(log, "Enter the name for the battle game mode:")),
                     Objects.requireNonNull(JOptionPane.showInputDialog(log, "Enter the name for the winner:")));
 
-            JOptionPane.showMessageDialog(log,"successfully entered the new game record into database","Success",JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(log,"The new game record is successfully entered into the database","Success",JOptionPane.INFORMATION_MESSAGE);
+            restartTheLog();
         });
 
         clearTheLog.addActionListener(e -> {
@@ -67,7 +70,7 @@ public class DatabaseGUI extends JFrame {
                            Integer.parseInt(Objects.requireNonNull(JOptionPane.showInputDialog(log, "Enter a number ID of the record which you want to delete:"))));
                 restartTheLog();
             } catch (Exception ignored){
-                JOptionPane.showMessageDialog(log, noSuchIdError, "No such Id found - Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(log, noSuchIdErrorMessage, noSuchIdErrorTitle, JOptionPane.ERROR_MESSAGE);
             }
 
             });
@@ -122,7 +125,7 @@ public class DatabaseGUI extends JFrame {
                 final String entityName = entityType.getName();
                 final Query query = session.createQuery("from " + entityName);
 
-                component.setText(startingLabelText);
+                component.setText(startingLabelHTMLText);
 
                 for (Object o : query.list()) {
                     BattleInfoEntity a = (BattleInfoEntity) o;
@@ -229,7 +232,7 @@ public class DatabaseGUI extends JFrame {
                 }
             }
             if(idExistsInDB == false){
-                JOptionPane.showMessageDialog(log, noSuchIdError, "No such Id found - Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(log, noSuchIdErrorMessage, noSuchIdErrorTitle, JOptionPane.ERROR_MESSAGE);
             }
         } catch(Exception e){
             e.printStackTrace();
