@@ -11,6 +11,7 @@ import org.hibernate.query.Query;
 import javax.persistence.metamodel.EntityType;
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class DatabaseGUI extends JFrame {
@@ -18,9 +19,10 @@ public class DatabaseGUI extends JFrame {
     private final int frameWidth = 900;
     private final String startingHtmlTag = "<html>";
     private final String startingLabelText = startingHtmlTag + "Database Game Records:" + "<br>";
+    private final String noSuchIdError = "Such an Id does not exist, please enter a number Id which exists in the database";
     private SessionFactory ourSessionFactory = buildSessionFactory();
     JLabel log = new JLabel();
-
+    ArrayList<Integer> idNums = new ArrayList<Integer>();
 
     public DatabaseGUI(){
         this.setSize(frameWidth,frameHeight);
@@ -61,14 +63,11 @@ public class DatabaseGUI extends JFrame {
 
         deleteById.addActionListener(e -> {
             try{
-                deleteTheLog();
                 deleteFromTableById(
-                        Integer.parseInt(Objects.requireNonNull(JOptionPane.showInputDialog(log,
-                                "Enter a number ID of the record which you want to delete:"))));
-                showDbInTableForm();
-
-                JOptionPane.showMessageDialog(log,"The record should now be deleted from the database","Success",JOptionPane.INFORMATION_MESSAGE);
+                           Integer.parseInt(Objects.requireNonNull(JOptionPane.showInputDialog(log, "Enter a number ID of the record which you want to delete:"))));
+                restartTheLog();
             } catch (Exception ignored){
+                JOptionPane.showMessageDialog(log, noSuchIdError, "No such Id found - Error", JOptionPane.ERROR_MESSAGE);
             }
 
             });
@@ -92,12 +91,8 @@ public class DatabaseGUI extends JFrame {
 
 
         showDbInTableForm();
-    }
 
-    private void deleteTheLog() {
-        for (Component component: log.getComponents()){
-            log.remove(component);
-        }
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
 
@@ -166,6 +161,7 @@ public class DatabaseGUI extends JFrame {
                     JLabel b = new JLabel();
                     b.setLayout(new GridLayout(1,3));
                     b.add(new Button(String.valueOf(a.getBattleId())));
+                    idNums.add((a.getBattleId()));
                     b.add(new Button(a.getBattleMode()));
                     b.add(new Button(a.getBattleWinner()));
                     b.add(new Button(String.valueOf(a.getSubmissionDate())));
@@ -201,16 +197,39 @@ public class DatabaseGUI extends JFrame {
         }
     }
 
+    private void deleteTheLog() {
+        for (Component component: log.getComponents()){
+            log.remove(component);
+        }
+    }
+
+    private void restartTheLog() {
+       deleteTheLog();
+       showDbInTableForm();
+    }
+
     private void deleteFromTableById(int id){
         final Session session = getSession();
         try {
             final Metamodel metamodel = session.getSessionFactory().getMetamodel();
             session.beginTransaction();
-            for (EntityType<?> entityType : metamodel.getEntities()) {
-                final String entityName = entityType.getName();
-                int query = session.createNativeQuery("delete from battle_info where battle_id = :battle_id")
-                        .setParameter("battle_id", id)
-                        .executeUpdate();
+
+            boolean idExistsInDB = false;
+
+            for(int i = 0; i < idNums.size(); i++) {
+                if (id == idNums.get(i)) {
+
+                    int query = session.createNativeQuery("delete from battle_info where battle_id = :battle_id")
+                            .setParameter("battle_id", id)
+                            .executeUpdate();
+                    System.out.println(id);
+                    JOptionPane.showMessageDialog(log, "The record number " + id + " should now be deleted from the database", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    idExistsInDB = true;
+                    break;
+                }
+            }
+            if(idExistsInDB == false){
+                JOptionPane.showMessageDialog(log, noSuchIdError, "No such Id found - Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch(Exception e){
             e.printStackTrace();
